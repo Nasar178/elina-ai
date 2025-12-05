@@ -29,8 +29,33 @@ export async function POST(request: NextRequest) {
     
     let htmlCode = '';
     
-    // Génération avec OpenAI si disponible
-    if (openai) {
+    // async function generateWithOpenAI(prompt: string, appType: 
+string): Promise<string> {
+  if (!openai) throw new Error("OpenAI non configuré");
+  
+  console.log("🔍 Début de generateWithOpenAI");
+  
+  // ... ton code existant ...
+  
+  try {
+    console.log("📤 Envoi requête à OpenAI...");
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4-turbo-preview",
+      // ... reste du code
+    });
+    
+    console.log("📥 Réponse reçue d'OpenAI");
+    console.log("Tokens utilisés:", completion.usage?.total_tokens);
+    
+    let html = completion.choices[0]?.message?.content || '';
+    console.log("Longueur HTML reçu:", html.length);
+    
+    return html;
+  } catch (error) {
+    console.error("❌ ERREUR OpenAI détaillée:", error);
+    throw error; // Important : propager l'erreur
+  }
+}) {
       try {
         htmlCode = await generateWithOpenAI(prompt, appType);
         console.log("✅ HTML généré avec OpenAI");
