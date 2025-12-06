@@ -1,84 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Configuration BONSAI
+// Configuration Bonsai
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   baseURL: 'https://api.trybons.ai/v1',
 }) : null;
 
 export async function POST(request: NextRequest) {
-  console.log("🚀 API /generate appelée");
+  console.log("=== NOUVELLE VERSION ELINA AI ===");
+  console.log("Timestamp:", new Date().toISOString());
   
   try {
     const { prompt } = await request.json();
-    
-    console.log("📝 Prompt:", prompt);
-    console.log("🔑 Bonsai configuré?:", openai ? "OUI" : "NON");
+    console.log("Prompt:", prompt);
     
     let html = '';
     let usedAI = false;
-    let errorMessage = '';
     
-    // Essayer Bonsai si configuré
+    // Essayer Bonsai
     if (openai) {
       try {
-        console.log("🤖 Tentative avec Bonsai AI...");
-        
+        console.log("Tentative Bonsai...");
         const completion = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo", // GPT-4 si disponible sur Bonsai
+          model: "gpt-3.5-turbo",
           messages: [
             { 
               role: "system", 
-              content: "Génère UNIQUEMENT du code HTML/CSS/JS valide avec Tailwind CSS. Réponds seulement avec le code, pas d'explications." 
+              content: "Génère du code HTML avec Tailwind CSS. Réponds uniquement avec du code HTML." 
             },
             { 
               role: "user", 
-              content: `Crée une page HTML pour: ${prompt}. Utilise Tailwind CSS via CDN. Code en français.` 
+              content: `Crée une page HTML pour: ${prompt}. Utilise Tailwind CSS via CDN.` 
             }
           ],
           temperature: 0.7,
-          max_tokens: 1500,
+          max_tokens: 1000,
         });
         
         html = completion.choices[0]?.message?.content || '';
         usedAI = true;
-        console.log("✅ Bonsai réussi! HTML généré:", html.length, "caractères");
+        console.log("Bonsai SUCCÈS - HTML généré:", html.length, "caractères");
+        console.log("Extrait:", html.substring(0, 100));
         
       } catch (error: any) {
-        errorMessage = error.message;
-        console.error("❌ Erreur Bonsai:", errorMessage);
+        console.log("Bonsai ÉCHEC:", error.message);
         usedAI = false;
       }
     }
     
-    // Fallback template si Bonsai échoue
+    // Template de fallback SIMPLE
     if (!html || !usedAI) {
-      console.log("🔄 Fallback au template");
-      html = `<!DOCTYPE html>
-<html>
-<head>
-  <title>${prompt}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="p-6">
-  <h1 class="text-3xl font-bold">${prompt}</h1>
-  <p>Généré par Elina AI ${usedAI ? 'avec Bonsai AI' : 'avec template'}</p>
-</body>
-</html>`;
+      console.log("Utilisation template simple");
+      html = `<h1>Template fallback pour: ${prompt}</h1>`;
     }
     
     return NextResponse.json({
       success: true,
       html: html,
       hasAI: usedAI,
-      message: usedAI ? "Généré avec Bonsai AI" : "Généré avec template"
+      message: usedAI ? "Généré avec Bonsai AI" : "Généré avec template",
+      version: "2.0"
     });
-
+    
   } catch (error) {
-    console.error("❌ Erreur API:", error);
+    console.error("Erreur globale:", error);
     return NextResponse.json(
-      { success: false, error: "Erreur interne" },
+      { success: false, error: "Erreur serveur" },
       { status: 500 }
     );
   }
