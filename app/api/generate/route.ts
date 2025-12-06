@@ -1,72 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
-
-// Configuration Bonsai
-const openai = process.env.OPENAI_API_KEY ? new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  baseURL: 'https://api.trybons.ai/v1',
-}) : null;
 
 export async function POST(request: NextRequest) {
-  console.log("=== NOUVELLE VERSION ELINA AI ===");
-  console.log("Timestamp:", new Date().toISOString());
+  console.log("=== TEST SIMPLE API ===");
   
   try {
     const { prompt } = await request.json();
-    console.log("Prompt:", prompt);
+    console.log("Prompt reçu:", prompt);
     
-    let html = '';
-    let usedAI = false;
-    
-    // Essayer Bonsai
-    if (openai) {
-      try {
-        console.log("Tentative Bonsai...");
-        const completion = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
-          messages: [
-            { 
-              role: "system", 
-              content: "Génère du code HTML avec Tailwind CSS. Réponds uniquement avec du code HTML." 
-            },
-            { 
-              role: "user", 
-              content: `Crée une page HTML pour: ${prompt}. Utilise Tailwind CSS via CDN.` 
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 1000,
-        });
-        
-        html = completion.choices[0]?.message?.content || '';
-        usedAI = true;
-        console.log("Bonsai SUCCÈS - HTML généré:", html.length, "caractères");
-        console.log("Extrait:", html.substring(0, 100));
-        
-      } catch (error: any) {
-        console.log("Bonsai ÉCHEC:", error.message);
-        usedAI = false;
-      }
-    }
-    
-    // Template de fallback SIMPLE
-    if (!html || !usedAI) {
-      console.log("Utilisation template simple");
-      html = `<h1>Template fallback pour: ${prompt}</h1>`;
-    }
+    // HTML de test
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <title>${prompt}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-6 bg-gray-100">
+  <h1 class="text-4xl font-bold text-blue-600">${prompt}</h1>
+  <p class="mt-4 text-gray-700">Ceci est un test de l'API Elina AI</p>
+  <p class="mt-2 text-sm text-gray-500">API Status: Fonctionnelle</p>
+</body>
+</html>`;
     
     return NextResponse.json({
       success: true,
       html: html,
-      hasAI: usedAI,
-      message: usedAI ? "Généré avec Bonsai AI" : "Généré avec template",
-      version: "2.0"
+      hasAI: false,
+      message: "Test simple - pas d'IA pour l'instant",
+      timestamp: new Date().toISOString()
     });
     
   } catch (error) {
-    console.error("Erreur globale:", error);
     return NextResponse.json(
-      { success: false, error: "Erreur serveur" },
+      { success: false, error: "Erreur de test" },
       { status: 500 }
     );
   }
